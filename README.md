@@ -1,8 +1,11 @@
 # go-csvparser
 Golang CSV parser into struct by tags
 
-Package provides simple and noobie parsing of each csv line into struct
+Package provides simple and noobie parsing of each csv line into struct.
+
 Supports only strings because I didn't need others :)
+
+See simple example in _example directory
 
 *Example:*
 
