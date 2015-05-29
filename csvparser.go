@@ -1,4 +1,4 @@
-//Package provides simple and noobie parsing of each csv line into struct
+//Package csvparser provides simple and noobie parsing of each csv line into struct
 //Supports only strings because I didn't need others :)
 //See simple example in _example directory
 package csvparser
@@ -9,14 +9,13 @@ import (
 	"reflect"
 )
 
-type Reader struct {
-	file        *os.File
-	headers     []string
-	type_struct reflect.Type
-	reader      *csv.Reader
+type reader struct {
+	file    *os.File
+	headers []string
+	reader  *csv.Reader
 }
 
-func (r *Reader) getHeaders() (err error) {
+func (r *reader) getHeaders() (err error) {
 	r.headers, err = r.reader.Read()
 	if err != nil {
 		return err
@@ -24,14 +23,14 @@ func (r *Reader) getHeaders() (err error) {
 	return
 }
 
-// Parses each line of csv file and passing interface{} to callback function
-func ParseEach(file string, v interface{}, callback func(diag interface{})) error {
+// ParseEach parses each line of csv file and passing interface{} to callback function
+func ParseEach(file string, v interface{}, callback func(result interface{})) error {
 	var err error
-	r := new(Reader)
+	r := new(reader)
 	dataType := reflect.TypeOf(v)
 	newData := reflect.New(dataType).Elem()
 	if r.file, err = os.Open(file); err != nil {
-		return
+		return err
 	}
 	defer r.file.Close()
 	r.reader = csv.NewReader(r.file)
@@ -39,7 +38,7 @@ func ParseEach(file string, v interface{}, callback func(diag interface{})) erro
 	r.headers = make([]string, 0)
 	err = r.getHeaders()
 	if err != nil {
-		return
+		return err
 	}
 
 	for {
@@ -50,16 +49,16 @@ func ParseEach(file string, v interface{}, callback func(diag interface{})) erro
 		for i := 0; i < dataType.NumField(); i++ {
 			f := dataType.Field(i)
 			index := 0
-			field_name := f.Tag.Get("csv")
+			fieldName := f.Tag.Get("csv")
 			for k, v := range r.headers {
-				if v == field_name {
+				if v == fieldName {
 					index = k
 				}
 			}
-			new_field := newData.FieldByName(f.Name)
-			if new_field.IsValid() {
-				if new_field.CanSet() {
-					new_field.Set(reflect.ValueOf(row[index]))
+			newField := newData.FieldByName(f.Name)
+			if newField.IsValid() {
+				if newField.CanSet() {
+					newField.Set(reflect.ValueOf(row[index]))
 				}
 			}
 		}
